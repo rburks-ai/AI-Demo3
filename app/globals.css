@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body {
+  font-feature-settings: 'ss01' 1;
+}
+
+::selection {
+  background: #B08D57;
+  color: #F6F3EC;
+}
+
+:focus-visible {
+  outline: 2px solid #B08D57;
+  outline-offset: 3px;
+}
+
+.tag-label {
+  font-family: var(--font-plex-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+}
+
+.hairline {
+  border-color: rgba(26, 24, 21, 0.12);
+}
+
+.hairline-light {
+  border-color: rgba(246, 243, 236, 0.18);
+}
+
+/* Shoppable hotspot marker */
+.hotspot-dot {
+  box-shadow: 0 0 0 4px rgba(246, 243, 236, 0.55);
+}
+
+.hotspot-dot::after {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border-radius: 9999px;
+  border: 1px solid rgba(246, 243, 236, 0.55);
+  animation: pulse-ring 2.6s var(--ease-out) infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.9;
+  }
+  80% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hotspot-dot::after {
+    animation: none;
+  }
+}
