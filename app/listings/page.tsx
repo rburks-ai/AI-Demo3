@@ -1,7 +1,7 @@
-import PropertyCard from '@/components/PropertyCard';
+import ListingsBrowser from '@/components/ListingsBrowser';
 import { properties } from '@/lib/data/properties';
 
-export const metadata = { title: 'Listings \u2014 Setting' };
+export const metadata = { title: 'Listings — Setting' };
 
 export default function ListingsPage() {
   return (
@@ -13,11 +13,7 @@ export default function ListingsPage() {
         listing to see what&rsquo;s shoppable room by room.
       </p>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-12">
-        {properties.map((p) => (
-          <PropertyCard key={p.slug} property={p} />
-        ))}
-      </div>
+      <ListingsBrowser properties={properties} />
     </div>
   );
 }
