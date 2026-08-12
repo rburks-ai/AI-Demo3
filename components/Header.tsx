@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import CartButton from './CartButton';
 
 export default function Header() {
   return (
@@ -20,12 +21,15 @@ export default function Header() {
           </Link>
         </nav>
 
-        <Link
-          href="/shop"
-          className="tag-label border border-ink/20 rounded-full px-5 py-2.5 hover:bg-ink hover:text-paper hover:border-ink transition-colors"
-        >
-          Shop the room
-        </Link>
+        <div className="flex items-center gap-3">
+          <CartButton />
+          <Link
+            href="/shop"
+            className="hidden sm:inline-block tag-label border border-ink/20 rounded-full px-5 py-2.5 hover:bg-ink hover:text-paper hover:border-ink transition-colors"
+          >
+            Shop the room
+          </Link>
+        </div>
       </div>
     </header>
   );
