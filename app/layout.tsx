@@ -38,10 +38,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className={`${fraunces.variable} ${workSans.variable} ${plexMono.variable} font-body bg-paper text-ink antialiased`}
       >
-        <Header />
-        <main>{children}</main>
-        <Footer />
-        <ChatWidget />
+        <CartProvider>
+          <Header />
+           <main>{children}</main>
+           <Footer />
+          <ChatWidget />
+        </CartProvider>
       </body>
     </html>
   );
