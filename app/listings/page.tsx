@@ -3,7 +3,11 @@ import { properties } from '@/lib/data/properties';
 
 export const metadata = { title: 'Listings — Setting' };
 
-export default function ListingsPage() {
+export default function ListingsPage({
+  searchParams,
+}: {
+  searchParams: { city?: string; maxPrice?: string };
+}) {
   return (
     <div className="max-w-content mx-auto px-6 md:px-10 pt-16 pb-28">
       <p className="tag-label text-brass mb-3">{properties.length} homes, fully set</p>
@@ -13,7 +17,11 @@ export default function ListingsPage() {
         listing to see what&rsquo;s shoppable room by room.
       </p>
 
-      <ListingsBrowser properties={properties} />
+      <ListingsBrowser
+        properties={properties}
+        initialCity={searchParams.city}
+        initialMaxPrice={searchParams.maxPrice ? Number(searchParams.maxPrice) : undefined}
+      />
     </div>
   );
 }
