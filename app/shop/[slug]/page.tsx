@@ -54,12 +54,7 @@ export default function ProductDetail({ params }: { params: { slug: string } }) 
             </div>
           </dl>
 
-          <button
-            type="button"
-            className="tag-label bg-ink text-paper rounded-full px-8 py-4 hover:bg-charcoal2 transition-colors w-full md:w-auto"
-          >
-            Add to cart — {money(product.price)}
-          </button>
+          <AddToCartButton product={product} />
 
           {featuredIn.length > 0 && (
             <div className="mt-8 pt-6 border-t hairline">
