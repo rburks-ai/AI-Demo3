@@ -11,23 +11,57 @@ const PRICE_BANDS = [
   { label: '$800k+', min: 800000, max: Infinity },
 ] as const;
 
-export default function ListingsBrowser({ properties }: { properties: Property[] }) {
+const money = (n: number) => `$${n.toLocaleString('en-US')}`;
+
+export default function ListingsBrowser({
+  properties,
+  initialCity,
+  initialMaxPrice,
+}: {
+  properties: Property[];
+  initialCity?: string;
+  initialMaxPrice?: number;
+}) {
   const locations = useMemo(
     () => ['All locations', ...Array.from(new Set(properties.map((p) => p.city)))],
     [properties]
   );
 
-  const [location, setLocation] = useState('All locations');
+  const matchedInitialCity = useMemo(() => {
+    if (!initialCity) return 'All locations';
+    const match = locations.find((loc) => loc.toLowerCase().includes(initialCity.toLowerCase()));
+    return match ?? 'All locations';
+  }, [initialCity, locations]);
+
+  const [location, setLocation] = useState(matchedInitialCity);
   const [priceBand, setPriceBand] = useState<(typeof PRICE_BANDS)[number]>(PRICE_BANDS[0]);
+  const [agentMaxPrice, setAgentMaxPrice] = useState<number | null>(initialMaxPrice ?? null);
 
   const filtered = properties.filter((p) => {
     const matchesLocation = location === 'All locations' || p.city === location;
     const matchesPrice = p.price >= priceBand.min && p.price < priceBand.max;
-    return matchesLocation && matchesPrice;
+    const matchesAgentCap = agentMaxPrice === null || p.price <= agentMaxPrice;
+    return matchesLocation && matchesPrice && matchesAgentCap;
   });
 
   return (
     <div>
+      {agentMaxPrice !== null && (
+        <div className="mb-6 flex items-center gap-2">
+          <span className="tag-label bg-brass/15 text-brass border border-brass/30 rounded-full pl-4 pr-2 py-2 flex items-center gap-2">
+            Assistant filter: under {money(agentMaxPrice)}
+            <button
+              type="button"
+              onClick={() => setAgentMaxPrice(null)}
+              aria-label="Clear assistant filter"
+              className="hover:text-ink transition-colors text-sm leading-none"
+            >
+              &times;
+            </button>
+          </span>
+        </div>
+      )}
+
       <div className="border-b hairline pb-10 mb-14 space-y-5">
         <div>
           <p className="tag-label text-ink/40 mb-2.5">Location</p>
