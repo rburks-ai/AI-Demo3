@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ProductCard from '@/components/ProductCard';
+import AddToCartButton from '@/components/AddToCartButton';
 import { furniture, getProduct } from '@/lib/data/furniture';
 import { properties } from '@/lib/data/properties';
 
