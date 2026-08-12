@@ -4,6 +4,7 @@ import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ChatWidget from '@/components/ChatWidget';
+import { CartProvider } from '@/lib/cart-context';
 
 const fraunces = Fraunces({
   subsets: ['latin'],
