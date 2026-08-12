@@ -1,10 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { properties } from '@/lib/data/properties';
 import { furniture } from '@/lib/data/furniture';
+import { ChatMessage } from '@/lib/chat-types';
 
 export const runtime = 'nodejs';
 
 const money = (n: number) => `$${n.toLocaleString('en-US')}`;
+
+const TOOLS = [
+  {
+    name: 'navigate_to_listing',
+    description: "Open a specific property listing's page in the user's browser.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        slug: { type: 'string', description: 'The listing slug, e.g. "the-alder-house"' },
+      },
+      required: ['slug'],
+    },
+  },
+  {
+    name: 'navigate_to_product',
+    description: "Open a specific furniture product's page in the user's browser.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        slug: { type: 'string', description: 'The product slug, e.g. "ansel-lounge-chair"' },
+      },
+      required: ['slug'],
+    },
+  },
+  {
+    name: 'filter_listings',
+    description:
+      'Navigate the user to the listings page pre-filtered by city and/or a maximum price. Use when the user describes what they want in a home rather than asking for one specific listing.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        city: { type: 'string', description: 'City to filter by, e.g. "Seattle" or "Portland, OR"' },
+        max_price: { type: 'number', description: 'Maximum price in dollars, e.g. 700000' },
+      },
+    },
+  },
+  {
+    name: 'add_to_cart',
+    description: "Add a furniture product to the user's cart.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        slug: { type: 'string', description: 'The product slug to add, e.g. "kiln-table-lamp"' },
+        quantity: { type: 'number', description: 'How many to add. Defaults to 1.' },
+      },
+      required: ['slug'],
+    },
+  },
+];
 
 function buildSystemPrompt() {
   const listingLines = properties
@@ -23,7 +73,7 @@ function buildSystemPrompt() {
 
   return `You are the in-house assistant for Setting, a company that sells fully furnished homes and the individual furniture pieces featured in them.
 
-Your job: help visitors find a home or a piece of furniture that fits what they describe, and make specific suggestions from the catalog below — never invent listings or products that aren't in it.
+Help visitors find a home or furniture piece that fits what they describe, using ONLY the real catalog below — never invent listings or products.
 
 CURRENT LISTINGS:
 ${listingLines}
@@ -31,12 +81,13 @@ ${listingLines}
 CURRENT FURNITURE:
 ${furnitureLines}
 
-Guidelines:
-- Recommend specific items by name, with their price, when relevant.
-- If someone describes a budget, room, or style, narrow it down to 1-3 real matches instead of listing everything.
-- Keep replies short — a few sentences, not a report.
-- If nothing in the catalog fits, say so plainly rather than stretching a bad match.
-- You cannot book viewings, place orders, or check real-time availability — point people to the listing or product page to take action.`;
+You have tools that take real action in the app: opening a listing or product page, pre-filtering the listings page, and adding an item to the cart. Use a tool whenever the user's intent is clear and actionable — don't just describe what they could do, do it. Examples:
+- "Add the Ansel chair to my cart" → call add_to_cart.
+- "Show me homes in Seattle under 800k" → call filter_listings.
+- "Take me to the Alder house" → call navigate_to_listing.
+- If they're just browsing or asking a general question, reply with text and no tool call.
+
+After a tool runs, give a brief, natural confirmation in text — don't repeat raw numbers back mechanically. Keep replies short. If nothing in the catalog fits, say so plainly.`;
 }
 
 export async function POST(req: NextRequest) {
@@ -49,7 +100,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let body: { messages?: { role: 'user' | 'assistant'; content: string }[] };
+  let body: { messages?: ChatMessage[] };
   try {
     body = await req.json();
   } catch {
@@ -71,9 +122,10 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-5',
-        max_tokens: 500,
+        max_tokens: 600,
         system: buildSystemPrompt(),
-        messages: messages.map((m) => ({ role: m.role, content: m.content })),
+        tools: TOOLS,
+        messages,
       }),
     });
 
@@ -87,13 +139,7 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await response.json();
-    const reply = data.content
-      ?.filter((block: { type: string }) => block.type === 'text')
-      .map((block: { text: string }) => block.text)
-      .join('\n')
-      .trim();
-
-    return NextResponse.json({ reply: reply || "I couldn't come up with a reply — try rephrasing that." });
+    return NextResponse.json({ content: data.content, stop_reason: data.stop_reason });
   } catch (err) {
     console.error('Chat route error:', err);
     return NextResponse.json({ error: 'Something went wrong reaching the assistant.' }, { status: 500 });
